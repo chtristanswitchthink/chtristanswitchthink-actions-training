@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        required: true
 
 jobs:
   build:
@@ -15,3 +19,48 @@ jobs:
       - run: echo "The name of the event that triggered this workflow is ${{ github.event_name }}"
       - run: echo "The name of the branch that the repository is currently referencing is ${{github.base_ref}}"
       - run: tree
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    environment: Test
+    if: github.event_name == "workflow_dispatch"
+    needs: [build]
+    steps:
+      - run: echo "Testing..."
+
+  load-test:
+    name: Load Test
+    runs-on: ubuntu-latest
+    environment: Load-Test
+    if: github.event_name == "workflow_dispatch"
+    needs: [build]
+    steps:
+      - run: |
+          echo "Testing..."
+          sleep 15
+
+  production:
+    name: Production
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://writeabout.net
+    if: github.event.inputs.environment == "Production"
+    needs: [test, load-test]
+    steps:
+      - run: |
+          echo "Step 1 deploying..."
+          sleep 10
+      - run: |
+          echo "Step 2 deploying..."
+          sleep 10
+      - run: |
+          echo "Step 3 deploying..."
+          sleep 10
+      - run: |
+          echo "Step 4 deploying..."
+          sleep 10
+      - run: |
+          echo "Step 5 deploying..."
+          sleep 10
